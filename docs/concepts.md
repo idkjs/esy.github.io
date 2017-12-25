@@ -3,8 +3,8 @@ id: concepts
 title: Concepts
 ---
 
-This serves as a glossary and an overview of concepts used in esy with links to
-detailed guide.
+This page serves as a glossary and an overview of concepts used in esy with
+links to detailed guide.
 
 List of all concepts:
 
@@ -12,44 +12,214 @@ List of all concepts:
 
 ### `sandbox`
 
+Sandbox is an isolated development environment for a project in development (a
+[root package](#root-packages)) managed by esy:
+
+* Libraies and preprocessors used by a project in development.
+* Development tools (like Merlin).
+* Plugins for IDEs and text editors.
+
+All these are represented by packages which are declared as
+[dependencies](#dependency) in esy.
+
 ### `package`
+
+**NOTE npm users:** this is the same concept as npm packages.
+
+Package is a unit of code distribution, a directory with a `package.json` (or
+`esy.json`) *package manifest*.
+
+A package can be installed from npm registry, github repository or any tarball
+(locally or over the network).
+
+Any npm package is also an esy package but esy packges can have esy-specific
+metadata in their package manifests:
+
+* [Commands to build the package](#package-build-commands)
+* [Commands to install the package](#package-install-commands)
+* [Exported environment declaration](#package-exported-environment)
 
 ### `root package`
 
+The [package](#package) at the root of the [sandbox](#sandbox).
+
+### `linked package`
+
+A [package](#package) which is declared as a [dependency](#dependency) of the
+sandbox by using `link:/path/to/sources` declaration in a `package.json` file:
+
+```
+{
+  ...
+  "dependencies": {
+    "my-lib": "link:../my-lib"
+  }
+}
+```
+
+This mechanism is used to develop multiple packages inside a single sandbox:
+instead of copying sources to `node_modules/` directory of the sandbox, `esy
+install` command will create a link which reference the actual source of the
+linked package. Thus modifications made to linked package's sources will be
+immeditaly visible to sandboxes this package is linked to.
+
 ### `dependency`
+
+Dependencies are declared in package manifests (`package.json`) and then being
+installed into `node_modules` directory.
+
+There are several types of dependencies esy can understand:
+
+* [regular dependencies](#regular-dependency)
+* [development time dependencies](#development-time-dependency)
+* [build time dependencies](#build-time-dependency)
+* [peer dependencies](#peer-dependency)
 
 ### `regular dependency`
 
+**NOTE npm users:** this is the same concept as npm dependencies.
+
+Regular dependency is a dependency which is used during the run time of your
+application.
+
+They are declared in `"dependencies"` section of a `package.json`.
+
 ### `development time dependency`
+
+**NOTE npm users:** this is the same concept as npm devDependencies.
+
+Development time dependency is used only during development.
+
+They are declared in `"devDependencies"` section of a `package.json`.
+
+Examples: `@opam/merlin`, `@opam/ocp-indent`.
 
 ### `build time dependency`
 
+**WARNING: this is not implemented yet, for now use regular dependencies to
+manage yor build time dependencies.**
+
+Build time dependency is a dependency which is only needed during the build of
+process of a package.
+
+Examples: `@opam/jbuilder`, `@opam/ocamlbuild` and other build systems.
+
 ### `peer dependency`
+
+**NOTE npm users:** this is the same concept as npm peerDependencies.
+
+They are declared in `"peerDependencies"` section of a `package.json`.
+
+In esy it is common to use `ocaml` as a peer dependency.
 
 ### `environment`
 
+A set of environment variables managed by esy.
+
+It consist of environment provided by esy and by each package in a sandbox.
+
+There are several types of environment managed by esy:
+
+- [build environment](#build-environment)
+- [command environment](#command-environment)
+- [test environment](#test-environment)
+
+See [Environment](environment.md) guide for details.
+
 ### `build environment`
+
+An environment which is used to build a [package](#package).
+
+See [Build Environment](environment.md#build-environment) guide for details.
 
 ### `command environment`
 
+An environment which includes [development time
+dependencies](#development-time-dependency).
+
+Most often it is used to run IDE/text editors and other development tools.
+
+See [Command Environment](environment.md#command-environment) guide for details.
+
 ### `test environment`
+
+An environment which includes the [root package](#root-package)'s own paths.
+
+This environment is useful when you need to test root package's executable as if
+they are installed.
+
+See [Test Environment](environment.md#test-environment) guide for details.
+
+### `package build commands`
+
+Commands which are needed to build the package.
+
+Those are configured via `"esy.build"` key in `package.json`.
+
+See [Configuration](configuration.md#esybuild) guide for details.
+
+### `package install commands`
+
+Commands which are needed to install the package' artifacts.
+
+Those are configured via `"esy.install"` key in `package.json`.
+
+See [Configuration](configuration.md#esyinstall) guide for details.
 
 ### `package exported environment`
 
+Environment which package contributes to an esy-managed
+[environment](#environment).
+
+It is configured via `"esy.exportedEnv"` key in `package.json`.
+
+See [Configuration](configuration.md#exported-environment) guide for details.
+
 ### `build store`
 
-### `global build store`
+A location esy uses to cache built artifacts.
 
-### `local build store`
+There are two types of stores:
 
-### `package build location`
+* [global build store](#global-build-store) which is used to place builds for
+  packages which don't change (installed from released distributions)
 
-### `package installation location`
-
-### `package stage location`
+* [local build store](#local-build-store) which is used to place builds for
+  packages which are being developed (their sources are being changed) as a part
+  of the sandbox. [Root package](#root-package) and [linked
+  packages](#linked-package) are being placed there.
 
 ### `release`
 
+An npm package which is used for end-user distribution of software built with
+esy.
+
+There are three types of releases exist:
+
+* dev-releases contain only dependency declarations and an ejected build system.
+* pack-releases also contain all sources for dependencies downloaded and
+  *packed* inside.
+* bin-releases contain prebuilt artifacts so they don't require building on the
+  client system.
+
+Releases can be produced with `esy release` command. See [Releases](release.md)
+guide for details.
+
 ### `ocamlfind`
 
+An utility which allows to discover OCaml [libraries](#ocamlfind-library)
+installed on the system.
+
+Most of OCaml build systems (jbuilder, ocamlbuild and others) allow to use
+ocamlfind-installed OCaml libraries when building applications.
+
 ### `ocamlfind library`
+
+A set of OCaml built artifacts installed with [ocamlfind](#ocamlfind).
+
+You can query a list of installed libraries inside an esy sandbox with the
+following command:
+
+```
+% esy ocamlfind list
+```
