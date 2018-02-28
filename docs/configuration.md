@@ -29,7 +29,7 @@ This is how it looks for a [jbuilder](https://jbuilder.readthedocs.io/) based pr
 
   "dependencies": {
     "anotherpackage": "1.0.0",
-    "@esy-ocaml/esy-installer"
+    "@esy-ocaml/esy-installer": "^0.0.0"
   }
 }
 ```
